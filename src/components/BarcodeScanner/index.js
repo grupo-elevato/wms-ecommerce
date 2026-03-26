@@ -2,6 +2,25 @@ import React, { useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Container, ScannerBox, ScanGuide, Fallback } from './styles';
 
+function cleanScannerUI(elementId) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+
+  // Esconder tudo exceto o video
+  Array.from(el.querySelectorAll('*')).forEach((child) => {
+    if (child.tagName === 'VIDEO') return;
+    // Manter o container do video
+    if (child.contains(el.querySelector('video'))) return;
+    child.style.cssText = 'display:none!important;';
+  });
+
+  const video = el.querySelector('video');
+  if (video) {
+    video.style.cssText =
+      'width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;border-radius:12px;';
+  }
+}
+
 export default function BarcodeScanner({ id, onScan, formats }) {
   const scannerRef = useRef(null);
   const containerRef = useRef(null);
@@ -15,10 +34,17 @@ export default function BarcodeScanner({ id, onScan, formats }) {
     const defaultFormats = [0, 2, 3, 4, 6, 7, 11];
 
     const config = {
-      fps: 20,
+      fps: 25,
       formatsToSupport: formats || defaultFormats,
       disableFlip: false,
-      aspectRatio: 1.5,
+      experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true,
+      },
+      videoConstraints: {
+        facingMode: 'environment',
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
     };
 
     const onSuccess = (decodedText) => {
@@ -39,25 +65,19 @@ export default function BarcodeScanner({ id, onScan, formats }) {
         () => {}
       )
       .then(() => {
-        const el = document.getElementById(id);
-        if (!el) return;
+        // Limpar UI imediatamente
+        cleanScannerUI(id);
 
-        // Esconder TUDO que o html5-qrcode injeta, exceto o video
-        const children = el.children;
-        for (let i = 0; i < children.length; i++) {
-          const child = children[i];
-          if (child.tagName !== 'VIDEO') {
-            child.style.display = 'none';
-          }
-        }
+        // Observer para remover qualquer elemento que a lib injete depois
+        const targetEl = document.getElementById(id);
+        if (targetEl) {
+          const observer = new MutationObserver(() => {
+            cleanScannerUI(id);
+          });
+          observer.observe(targetEl, { childList: true, subtree: true });
 
-        // Garantir que o video ocupa tudo
-        const video = el.querySelector('video');
-        if (video) {
-          video.style.width = '100%';
-          video.style.height = '100%';
-          video.style.objectFit = 'cover';
-          video.style.borderRadius = '12px';
+          // Guardar referencia para cleanup
+          scannerRef.current._observer = observer;
         }
       })
       .catch((err) => {
@@ -68,6 +88,9 @@ export default function BarcodeScanner({ id, onScan, formats }) {
       });
 
     return () => {
+      if (scannerRef.current?._observer) {
+        scannerRef.current._observer.disconnect();
+      }
       if (scanner.isScanning) {
         scanner.stop().catch(() => {});
       }
@@ -77,7 +100,12 @@ export default function BarcodeScanner({ id, onScan, formats }) {
   return (
     <Container ref={containerRef}>
       <ScannerBox id={id} />
-      <ScanGuide />
+      <ScanGuide>
+        <span />
+        <span />
+        <span />
+        <span />
+      </ScanGuide>
       <Fallback className="fallback">
         <div style={{ fontSize: 40, marginBottom: 12 }}>&#128247;</div>
         <div>Camera nao disponivel</div>

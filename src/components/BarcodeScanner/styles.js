@@ -1,8 +1,9 @@
 import styled, { keyframes } from 'styled-components';
 
-const scanPulse = keyframes`
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+const scanLine = keyframes`
+  0% { top: 20%; }
+  50% { top: 75%; }
+  100% { top: 20%; }
 `;
 
 export const Container = styled.div`
@@ -11,20 +12,23 @@ export const Container = styled.div`
   border-radius: 12px;
   overflow: hidden;
   background: #000;
-  min-height: 220px;
+  min-height: 240px;
 
-  /* Forçar remoção de QUALQUER elemento visual do html5-qrcode */
-  canvas,
-  img,
-  [id$="__scan_region"],
-  [id$="__dashboard_section"],
-  [id$="__header_message"],
-  [style*="border-width"],
-  [style*="position: absolute"][style*="border"] {
+  /* Nuclear: esconder absolutamente tudo que nao seja video */
+  #danfe-scanner > *:not(video),
+  #product-scanner > *:not(video) {
     display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
   }
 
-  video {
+  #danfe-scanner > video,
+  #product-scanner > video {
+    display: block !important;
     width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
@@ -40,7 +44,7 @@ export const Container = styled.div`
 
 export const ScannerBox = styled.div`
   width: 100%;
-  min-height: 220px;
+  min-height: 240px;
 `;
 
 export const ScanGuide = styled.div`
@@ -48,23 +52,66 @@ export const ScanGuide = styled.div`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 80%;
-  height: 60px;
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  border-radius: 8px;
+  width: 85%;
+  height: 70px;
   pointer-events: none;
   z-index: 10;
-  animation: ${scanPulse} 2s ease-in-out infinite;
 
+  /* Cantos brancos nos 4 lados */
+  & > span {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: rgba(255, 255, 255, 0.8);
+    border-style: solid;
+  }
+
+  & > span:nth-child(1) {
+    top: 0; left: 0;
+    border-width: 3px 0 0 3px;
+    border-radius: 4px 0 0 0;
+  }
+  & > span:nth-child(2) {
+    top: 0; right: 0;
+    border-width: 3px 3px 0 0;
+    border-radius: 0 4px 0 0;
+  }
+  & > span:nth-child(3) {
+    bottom: 0; left: 0;
+    border-width: 0 0 3px 3px;
+    border-radius: 0 0 0 4px;
+  }
+  & > span:nth-child(4) {
+    bottom: 0; right: 0;
+    border-width: 0 3px 3px 0;
+    border-radius: 0 0 4px 0;
+  }
+
+  /* Linha de scan animada */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 5%;
+    width: 90%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(46, 125, 50, 0.9), transparent);
+    top: 50%;
+    animation: ${scanLine} 2s ease-in-out infinite;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(46, 125, 50, 0.5);
+  }
+
+  /* Texto guia */
   &::after {
     content: 'Aponte para o codigo de barras';
     position: absolute;
-    bottom: -24px;
+    bottom: -22px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 11px;
     color: rgba(255, 255, 255, 0.7);
     white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
   }
 `;
 
