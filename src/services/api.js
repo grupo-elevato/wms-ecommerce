@@ -44,27 +44,38 @@ export async function buscarPedidoPorChave(chave) {
 }
 
 export async function buscarEmbalagensConferidas(numnota) {
-  // Tentar com numnota no path
-  const url = `${API_BASE}/api/v1/wms_ecommerce_embalagens/${encodeURIComponent(numnota)}`;
-  console.log('[WMS] Buscando embalagens em:', url);
+  const urls = [
+    `${API_BASE}/api/v1/wms_ecommerce_embalagens/?numnota=${encodeURIComponent(numnota)}`,
+    `${API_BASE}/api/v1/wms_ecommerce_embalagens/${encodeURIComponent(numnota)}`,
+    `${API_BASE}/api/v1/wms_ecommerce_embalagens?numnota=${encodeURIComponent(numnota)}`,
+  ];
 
-  const response = await fetch(url, { headers: authHeaders() });
+  for (const url of urls) {
+    console.log('[WMS] Tentando buscar embalagens em:', url);
+    try {
+      const response = await fetch(url, { headers: authHeaders() });
 
-  // 404 = nenhum item conferido ainda, retornar vazio
-  if (response.status === 404) {
-    console.log('[WMS] Nenhuma embalagem encontrada (404)');
-    return { data: [] };
+      if (response.status === 404) {
+        console.log('[WMS] 404 em:', url);
+        continue;
+      }
+
+      if (!response.ok) {
+        console.log('[WMS] Erro', response.status, 'em:', url);
+        continue;
+      }
+
+      const json = await response.json();
+      console.log('[WMS] Sucesso em:', url, 'Resposta:', JSON.stringify(json));
+      return json;
+    } catch (err) {
+      console.log('[WMS] Falha em:', url, err.message);
+      continue;
+    }
   }
 
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    console.error('[WMS] Erro na API embalagens:', response.status, text);
-    throw new Error(`Erro ao buscar embalagens: ${response.status}`);
-  }
-
-  const json = await response.json();
-  console.log('[WMS] Resposta embalagens raw:', json);
-  return json;
+  console.log('[WMS] Nenhum endpoint retornou dados');
+  return [];
 }
 
 export async function registrarEmbalagem({ idproduto, method, numnota, user }) {
