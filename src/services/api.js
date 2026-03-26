@@ -1,4 +1,4 @@
-const API_BASE = process.env.REACT_APP_API_URL || '';
+const API_BASE = (process.env.REACT_APP_API_URL || '').replace(/\/+$/, '');
 const API_TOKEN = process.env.REACT_APP_API_TOKEN || '';
 
 function authHeaders() {
