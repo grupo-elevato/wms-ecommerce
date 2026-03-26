@@ -80,21 +80,47 @@ export default function Conferencia() {
     const verificarItensConferidos = async () => {
       try {
         const resultado = await buscarEmbalagensConferidas(pedido.cabecalho.numnota);
-        const embalagens = resultado.data || resultado || [];
+        console.log('[WMS] Resposta embalagens:', JSON.stringify(resultado));
 
-        if (Array.isArray(embalagens) && embalagens.length > 0) {
+        // Tentar extrair array de diferentes formatos de resposta
+        let embalagens = [];
+        if (Array.isArray(resultado)) {
+          embalagens = resultado;
+        } else if (resultado && Array.isArray(resultado.data)) {
+          embalagens = resultado.data;
+        } else if (resultado && Array.isArray(resultado.results)) {
+          embalagens = resultado.results;
+        } else if (resultado && typeof resultado === 'object') {
+          // Se for objeto com chaves numericas ou outro formato
+          const values = Object.values(resultado);
+          if (values.length > 0 && Array.isArray(values[0])) {
+            embalagens = values[0];
+          }
+        }
+
+        console.log('[WMS] Embalagens encontradas:', embalagens.length, embalagens);
+
+        if (embalagens.length > 0) {
           const contagemPorSku = {};
           embalagens.forEach((emb) => {
-            const sku = String(emb.idproduto || emb.IDPRODUTO || '');
+            // Tentar todas as variações possíveis do campo
+            const sku = String(
+              emb.idproduto || emb.IDPRODUTO || emb.id_produto ||
+              emb.sku || emb.SKU || emb.produto || emb.PRODUTO || ''
+            ).trim();
             if (sku) {
               contagemPorSku[sku] = (contagemPorSku[sku] || 0) + 1;
             }
           });
 
+          console.log('[WMS] Contagem por SKU:', contagemPorSku);
+          console.log('[WMS] SKUs do pedido:', pedido.itens.map(i => String(i.sku).trim()));
+
           setItensQtdConfirmada((prev) => {
             const updated = { ...prev };
             pedido.itens.forEach((item, idx) => {
-              const qtdJaConferida = contagemPorSku[String(item.sku)] || 0;
+              const skuItem = String(item.sku).trim();
+              const qtdJaConferida = contagemPorSku[skuItem] || 0;
               if (qtdJaConferida > 0) {
                 updated[idx] = Math.min(qtdJaConferida, item.quantidade);
               }
@@ -102,13 +128,14 @@ export default function Conferencia() {
             return updated;
           });
 
-          const totalJaConferidos = Object.keys(contagemPorSku).length;
-          if (totalJaConferidos > 0) {
-            showToast(`${totalJaConferidos} item(ns) ja conferido(s) anteriormente`, 'warning');
+          const totalRegistros = embalagens.length;
+          if (totalRegistros > 0) {
+            showToast(`${totalRegistros} item(ns) ja conferido(s) anteriormente`, 'warning');
           }
         }
       } catch (err) {
-        console.error('Erro ao verificar itens conferidos:', err);
+        console.error('[WMS] Erro ao verificar itens conferidos:', err);
+        showToast('Erro ao verificar conferencias anteriores', 'error');
       } finally {
         setLoadingConferidos(false);
       }
