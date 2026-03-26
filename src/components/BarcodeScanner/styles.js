@@ -14,27 +14,6 @@ export const Container = styled.div`
   background: #000;
   min-height: 240px;
 
-  /* Nuclear: esconder absolutamente tudo que nao seja video */
-  #danfe-scanner > *:not(video),
-  #product-scanner > *:not(video) {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    position: absolute !important;
-  }
-
-  #danfe-scanner > video,
-  #product-scanner > video {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    border-radius: 12px;
-  }
-
   &[data-camera-failed='true'] {
     .fallback {
       display: flex;
@@ -45,6 +24,19 @@ export const Container = styled.div`
 export const ScannerBox = styled.div`
   width: 100%;
   min-height: 240px;
+  visibility: hidden;
+
+  video {
+    visibility: visible !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 12px;
+    z-index: 1;
+  }
 `;
 
 export const ScanGuide = styled.div`
@@ -57,7 +49,6 @@ export const ScanGuide = styled.div`
   pointer-events: none;
   z-index: 10;
 
-  /* Cantos brancos nos 4 lados */
   & > span {
     position: absolute;
     width: 20px;
@@ -87,7 +78,6 @@ export const ScanGuide = styled.div`
     border-radius: 0 0 4px 0;
   }
 
-  /* Linha de scan animada */
   &::before {
     content: '';
     position: absolute;
@@ -101,7 +91,6 @@ export const ScanGuide = styled.div`
     box-shadow: 0 0 8px rgba(46, 125, 50, 0.5);
   }
 
-  /* Texto guia */
   &::after {
     content: 'Aponte para o codigo de barras';
     position: absolute;
@@ -127,4 +116,5 @@ export const Fallback = styled.div`
   justify-content: center;
   color: #999;
   background: #1a1a1a;
+  z-index: 5;
 `;
