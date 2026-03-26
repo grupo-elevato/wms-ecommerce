@@ -1,4 +1,9 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
+
+const scanPulse = keyframes`
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+`;
 
 export const Container = styled.div`
   width: 100%;
@@ -6,35 +11,24 @@ export const Container = styled.div`
   border-radius: 12px;
   overflow: hidden;
   background: #000;
-  min-height: 200px;
+  min-height: 220px;
 
-  /* Esconder linhas vermelhas e overlays do html5-qrcode */
+  /* Forçar remoção de QUALQUER elemento visual do html5-qrcode */
+  canvas,
+  img,
+  [id$="__scan_region"],
+  [id$="__dashboard_section"],
+  [id$="__header_message"],
+  [style*="border-width"],
+  [style*="position: absolute"][style*="border"] {
+    display: none !important;
+  }
+
   video {
+    width: 100% !important;
+    height: 100% !important;
     object-fit: cover !important;
     border-radius: 12px;
-  }
-
-  /* Remover shaded regions (overlay escuro) */
-  [style*="border-width"] {
-    display: none !important;
-  }
-
-  /* Remover scan line e imagens de marcação */
-  img[alt="end"],
-  img[alt="start"],
-  img[src*="data:image"] {
-    display: none !important;
-  }
-
-  /* Remover dashboard e header */
-  [id$="__dashboard_section"],
-  [id$="__header_message"] {
-    display: none !important;
-  }
-
-  /* Remover bordas vermelhas da scan region */
-  [id$="__scan_region"] > img {
-    display: none !important;
   }
 
   &[data-camera-failed='true'] {
@@ -46,7 +40,32 @@ export const Container = styled.div`
 
 export const ScannerBox = styled.div`
   width: 100%;
-  min-height: 200px;
+  min-height: 220px;
+`;
+
+export const ScanGuide = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 60px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 10;
+  animation: ${scanPulse} 2s ease-in-out infinite;
+
+  &::after {
+    content: 'Aponte para o codigo de barras';
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+  }
 `;
 
 export const Fallback = styled.div`

@@ -110,8 +110,6 @@ export default function DanfeScan() {
             <BarcodeScanner
               id="danfe-scanner"
               onScan={handleDanfeScan}
-              width={280}
-              height={150}
             />
             <ScannerOverlay>
               <ScannerFrame>

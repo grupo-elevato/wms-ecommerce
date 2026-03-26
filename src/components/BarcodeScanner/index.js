@@ -1,25 +1,24 @@
 import React, { useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { Container, ScannerBox, Fallback } from './styles';
+import { Container, ScannerBox, ScanGuide, Fallback } from './styles';
 
-export default function BarcodeScanner({ id, onScan, width, height, formats }) {
+export default function BarcodeScanner({ id, onScan, formats }) {
   const scannerRef = useRef(null);
   const containerRef = useRef(null);
   const lastScanRef = useRef('');
   const lastScanTimeRef = useRef(0);
 
   useEffect(() => {
-    const scanner = new Html5Qrcode(id);
+    const scanner = new Html5Qrcode(id, { verbose: false });
     scannerRef.current = scanner;
 
-    const defaultFormats = [0, 2, 3, 4, 6, 7, 11]; // ITF, CODE_128, CODE_39, CODABAR, EAN_13, EAN_8, UPC_A
+    const defaultFormats = [0, 2, 3, 4, 6, 7, 11];
 
     const config = {
-      fps: 15,
-      qrbox: { width: width || 320, height: height || 150 },
+      fps: 20,
       formatsToSupport: formats || defaultFormats,
       disableFlip: false,
-      aspectRatio: 1.777,
+      aspectRatio: 1.5,
     };
 
     const onSuccess = (decodedText) => {
@@ -40,44 +39,25 @@ export default function BarcodeScanner({ id, onScan, width, height, formats }) {
         () => {}
       )
       .then(() => {
-        // Remove linhas vermelhas e shaded regions
         const el = document.getElementById(id);
-        if (el) {
-          // Remover shaded regions (overlay escuro ao redor da qrbox)
-          const shadedRegions = el.querySelectorAll('[style*="border-width"]');
-          shadedRegions.forEach((region) => {
-            region.style.display = 'none';
-          });
+        if (!el) return;
 
-          // Remover a borda da scan region (linha vermelha)
-          const scanRegion = el.querySelector('#' + id + '__scan_region');
-          if (scanRegion) {
-            const imgs = scanRegion.querySelectorAll('img');
-            imgs.forEach((img) => {
-              img.style.display = 'none';
-            });
+        // Esconder TUDO que o html5-qrcode injeta, exceto o video
+        const children = el.children;
+        for (let i = 0; i < children.length; i++) {
+          const child = children[i];
+          if (child.tagName !== 'VIDEO') {
+            child.style.display = 'none';
           }
+        }
 
-          // Esconder qualquer elemento com borda vermelha/colorida
-          const allElements = el.querySelectorAll('*');
-          allElements.forEach((child) => {
-            const style = child.style;
-            if (style.borderColor === 'rgb(255, 0, 0)' || style.border?.includes('red')) {
-              style.border = 'none';
-            }
-          });
-
-          // Remover o texto de "Scanning" e a dash animation
-          const dashAnimation = el.querySelector('#' + id + '__dashboard_section');
-          if (dashAnimation) {
-            dashAnimation.style.display = 'none';
-          }
-
-          // Remover header section
-          const headerSection = el.querySelector('#' + id + '__header_message');
-          if (headerSection) {
-            headerSection.style.display = 'none';
-          }
+        // Garantir que o video ocupa tudo
+        const video = el.querySelector('video');
+        if (video) {
+          video.style.width = '100%';
+          video.style.height = '100%';
+          video.style.objectFit = 'cover';
+          video.style.borderRadius = '12px';
         }
       })
       .catch((err) => {
@@ -97,6 +77,7 @@ export default function BarcodeScanner({ id, onScan, width, height, formats }) {
   return (
     <Container ref={containerRef}>
       <ScannerBox id={id} />
+      <ScanGuide />
       <Fallback className="fallback">
         <div style={{ fontSize: 40, marginBottom: 12 }}>&#128247;</div>
         <div>Camera nao disponivel</div>
