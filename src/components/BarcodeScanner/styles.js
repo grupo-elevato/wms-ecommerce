@@ -8,6 +8,35 @@ export const Container = styled.div`
   background: #000;
   min-height: 200px;
 
+  /* Esconder linhas vermelhas e overlays do html5-qrcode */
+  video {
+    object-fit: cover !important;
+    border-radius: 12px;
+  }
+
+  /* Remover shaded regions (overlay escuro) */
+  [style*="border-width"] {
+    display: none !important;
+  }
+
+  /* Remover scan line e imagens de marcação */
+  img[alt="end"],
+  img[alt="start"],
+  img[src*="data:image"] {
+    display: none !important;
+  }
+
+  /* Remover dashboard e header */
+  [id$="__dashboard_section"],
+  [id$="__header_message"] {
+    display: none !important;
+  }
+
+  /* Remover bordas vermelhas da scan region */
+  [id$="__scan_region"] > img {
+    display: none !important;
+  }
+
   &[data-camera-failed='true'] {
     .fallback {
       display: flex;
