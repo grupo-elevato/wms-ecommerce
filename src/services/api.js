@@ -44,16 +44,27 @@ export async function buscarPedidoPorChave(chave) {
 }
 
 export async function buscarEmbalagensConferidas(numnota) {
-  const response = await fetch(
-    `${API_BASE}/api/v1/wms_ecommerce_embalagens/?numnota=${encodeURIComponent(numnota)}`,
-    { headers: authHeaders() }
-  );
+  // Tentar com numnota no path
+  const url = `${API_BASE}/api/v1/wms_ecommerce_embalagens/${encodeURIComponent(numnota)}`;
+  console.log('[WMS] Buscando embalagens em:', url);
+
+  const response = await fetch(url, { headers: authHeaders() });
+
+  // 404 = nenhum item conferido ainda, retornar vazio
+  if (response.status === 404) {
+    console.log('[WMS] Nenhuma embalagem encontrada (404)');
+    return { data: [] };
+  }
 
   if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    console.error('[WMS] Erro na API embalagens:', response.status, text);
     throw new Error(`Erro ao buscar embalagens: ${response.status}`);
   }
 
-  return await response.json();
+  const json = await response.json();
+  console.log('[WMS] Resposta embalagens raw:', json);
+  return json;
 }
 
 export async function registrarEmbalagem({ idproduto, method, numnota, user }) {
