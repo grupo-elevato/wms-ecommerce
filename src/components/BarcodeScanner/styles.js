@@ -12,7 +12,7 @@ export const Container = styled.div`
   border-radius: 12px;
   overflow: hidden;
   background: #000;
-  min-height: 240px;
+  min-height: 400px;
 
   &[data-camera-failed='true'] {
     .fallback {
@@ -23,7 +23,7 @@ export const Container = styled.div`
 
 export const ScannerBox = styled.div`
   width: 100%;
-  min-height: 240px;
+  min-height: 400px;
   visibility: hidden;
 
   video {
@@ -44,8 +44,8 @@ export const ScanGuide = styled.div`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 85%;
-  height: 70px;
+  width: 90%;
+  height: 100px;
   pointer-events: none;
   z-index: 10;
 
