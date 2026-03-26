@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep:*)",
+      "Bash(python3:*)",
+      "Bash(npx create-react-app:*)",
+      "Bash(cp -r wms_react_temp/* wms_ecommerce/)",
+      "Bash(cp wms_react_temp/.gitignore wms_ecommerce/)",
+      "Bash(rm -rf wms_react_temp)",
+      "Bash(cp -r wms_react_temp/package.json wms_react_temp/package-lock.json wms_react_temp/public wms_react_temp/src wms_ecommerce/)",
+      "Bash(npm install:*)",
+      "Bash(npx react-scripts:*)",
+      "Bash(npm start:*)",
+      "mcp__claude_ai_Database__create_postgres_table",
+      "Bash(npm run:*)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(find /c/Users/Matriz_0-115/Documents/GitHub/wms_ecommerce/src -type f \\\\\\(-name *.js -o -name *.jsx -o -name *.ts -o -name *.tsx \\\\\\))",
+      "Bash(gh auth:*)",
+      "Bash(git:*)",
+      "Bash(where gh:*)",
+      "Bash(winget install:*)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/GitHub CLI\")",
+      "Bash(gh --version)"
+    ]
+  }
+}
