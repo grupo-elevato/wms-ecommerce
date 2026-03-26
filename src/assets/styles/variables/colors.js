@@ -1,4 +1,4 @@
-export default {
+const colors = {
   bgColor: '#f0f2f5',
 
   primary: {
@@ -33,3 +33,5 @@ export default {
     },
   },
 };
+
+export default colors;

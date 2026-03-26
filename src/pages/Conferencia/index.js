@@ -115,7 +115,7 @@ export default function Conferencia() {
     };
 
     verificarItensConferidos();
-  }, []);
+  }, [pedido, showToast]);
 
   if (!pedido) {
     navigate('/', { replace: true });
