@@ -9,14 +9,7 @@ import {
   Container,
   ScanSection,
   SectionTitle,
-  Instruction,
   ScannerWrapper,
-  ScannerOverlay,
-  ScannerFrame,
-  CornerBL,
-  CornerBR,
-  GuideLine,
-  GuideLabel,
   Divider,
   ManualInputGroup,
   Input,
@@ -102,25 +95,11 @@ export default function DanfeScan() {
       <Container>
         <ScanSection>
           <SectionTitle>Escanear DANFE Simplificada</SectionTitle>
-          <Instruction>
-            Posicione o codigo de barras duplo entre as linhas vermelhas
-          </Instruction>
-
           <ScannerWrapper>
             <BarcodeScanner
               id="danfe-scanner"
               onScan={handleDanfeScan}
             />
-            <ScannerOverlay>
-              <ScannerFrame>
-                <CornerBL />
-                <CornerBR />
-              </ScannerFrame>
-              <GuideLabel top="calc(38% - 16px)">Linha 1</GuideLabel>
-              <GuideLine top="38%" />
-              <GuideLabel top="calc(58% - 16px)">Linha 2</GuideLabel>
-              <GuideLine top="58%" />
-            </ScannerOverlay>
           </ScannerWrapper>
         </ScanSection>
 
