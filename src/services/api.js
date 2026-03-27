@@ -78,11 +78,11 @@ export async function buscarEmbalagensConferidas(numnota) {
   return [];
 }
 
-export async function registrarEmbalagem({ idproduto, method, numnota, user }) {
+export async function registrarEmbalagem({ idproduto, method, numnota, user, chavenota }) {
   const response = await fetch(`${API_BASE}/api/v1/wms_ecommerce_embalagens/`, {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify({ idproduto, method, numnota, user }),
+    body: JSON.stringify({ idproduto, method, numnota, user, chavenota }),
   });
 
   if (!response.ok) {

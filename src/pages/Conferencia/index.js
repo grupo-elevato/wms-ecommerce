@@ -182,6 +182,7 @@ export default function Conferencia() {
       method,
       numnota: String(cabecalho.numnota),
       user: 'operador',
+      chavenota: chave || null,
     }).catch(() => {
       showToast('Erro ao salvar conferencia', 'error');
     });
