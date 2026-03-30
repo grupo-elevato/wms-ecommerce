@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../../components/Header';
 import BarcodeScanner from '../../components/BarcodeScanner';
 import Toast from '../../components/Toast';
 import { registrarEmbalagem, buscarEmbalagensConferidas } from '../../services/api';
 import Loading from '../../components/Loading';
+import useIsMobile from '../../hooks/useIsMobile';
 import {
   Container,
   OrderHeader,
@@ -39,6 +40,8 @@ import {
   ScanModalItemName,
   ScanModalItemCode,
   BtnManualConfirm,
+  DesktopScanInput,
+  DesktopScanLabel,
   FinalizeSection,
   BtnFinalize,
   SuccessOverlay,
@@ -52,6 +55,7 @@ import {
 export default function Conferencia() {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   const { pedido, chave } = location.state || {};
 
@@ -69,6 +73,8 @@ export default function Conferencia() {
   const [flashIndex, setFlashIndex] = useState(null);
   const [scanningIndex, setScanningIndex] = useState(null);
   const [loadingConferidos, setLoadingConferidos] = useState(true);
+  const [desktopScanValue, setDesktopScanValue] = useState('');
+  const desktopInputRef = useRef(null);
 
   const showToast = useCallback((message, type) => {
     setToast({ message, type });
@@ -144,6 +150,14 @@ export default function Conferencia() {
     verificarItensConferidos();
   }, [pedido, showToast]);
 
+  // Auto-focus desktop input when modal opens
+  useEffect(() => {
+    if (scanningIndex !== null && !isMobile && desktopInputRef.current) {
+      desktopInputRef.current.focus();
+      setDesktopScanValue('');
+    }
+  }, [scanningIndex, isMobile]);
+
   if (!pedido) {
     navigate('/', { replace: true });
     return null;
@@ -205,6 +219,21 @@ export default function Conferencia() {
   const handleManualConfirm = () => {
     if (scanningIndex === null) return;
     confirmarItemPorIndex(scanningIndex, 'manual');
+  };
+
+  const handleDesktopScanKeyDown = (e) => {
+    if (e.key === 'Enter' && desktopScanValue.trim()) {
+      const trimmed = desktopScanValue.trim();
+      if (scanningIndex === null) return;
+      const item = itens[scanningIndex];
+
+      if (item.codigoBarras === trimmed) {
+        confirmarItemPorIndex(scanningIndex, 'leitor');
+      } else {
+        showToast('Codigo de barras nao corresponde a este item', 'error');
+      }
+      setDesktopScanValue('');
+    }
   };
 
   const handleFinalizar = () => {
@@ -310,7 +339,9 @@ export default function Conferencia() {
         <ScanModal>
           <ScanModalContent>
             <ScanModalHeader>
-              <ScanModalTitle>Escanear Item</ScanModalTitle>
+              <ScanModalTitle>
+                {isMobile ? 'Escanear Item' : 'Leitura de Codigo de Barras'}
+              </ScanModalTitle>
               <ScanModalClose onClick={() => setScanningIndex(null)}>
                 &#10005;
               </ScanModalClose>
@@ -321,10 +352,27 @@ export default function Conferencia() {
               <ScanModalItemCode>COD: {scanningItem.codigoBarras}</ScanModalItemCode>
             </ScanModalItem>
 
-            <BarcodeScanner
-              id="product-scanner"
-              onScan={handleProductScan}
-            />
+            {isMobile ? (
+              <BarcodeScanner
+                id="product-scanner"
+                onScan={handleProductScan}
+              />
+            ) : (
+              <>
+                <DesktopScanLabel>
+                  Escaneie o codigo de barras com o leitor USB
+                </DesktopScanLabel>
+                <DesktopScanInput
+                  ref={desktopInputRef}
+                  type="text"
+                  value={desktopScanValue}
+                  onChange={(e) => setDesktopScanValue(e.target.value)}
+                  onKeyDown={handleDesktopScanKeyDown}
+                  placeholder="Aguardando leitura do codigo de barras..."
+                  autoFocus
+                />
+              </>
+            )}
 
             <BtnManualConfirm onClick={handleManualConfirm}>
               Confirmar Manualmente
