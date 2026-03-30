@@ -5,6 +5,7 @@ import Header from '../../components/Header';
 import BarcodeScanner from '../../components/BarcodeScanner';
 import Loading from '../../components/Loading';
 import Toast from '../../components/Toast';
+import useIsMobile from '../../hooks/useIsMobile';
 import {
   Container,
   ScanSection,
@@ -19,6 +20,7 @@ import {
 
 export default function DanfeScan() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [inputChave, setInputChave] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ message: '', type: '' });
@@ -93,30 +95,38 @@ export default function DanfeScan() {
     <>
       <Header subtitle="Escaneie a DANFE para iniciar" />
       <Container>
-        <ScanSection>
-          <SectionTitle>Escanear DANFE Simplificada</SectionTitle>
-          <ScannerWrapper>
-            <BarcodeScanner
-              id="danfe-scanner"
-              onScan={handleDanfeScan}
-            />
-          </ScannerWrapper>
-        </ScanSection>
+        {isMobile && (
+          <ScanSection>
+            <SectionTitle>Escanear DANFE Simplificada</SectionTitle>
+            <ScannerWrapper>
+              <BarcodeScanner
+                id="danfe-scanner"
+                onScan={handleDanfeScan}
+              />
+            </ScannerWrapper>
+          </ScanSection>
+        )}
 
-        <Divider>
-          <span>ou digite manualmente</span>
-        </Divider>
+        {isMobile && (
+          <Divider>
+            <span>ou digite manualmente</span>
+          </Divider>
+        )}
 
         <ScanSection>
+          {!isMobile && (
+            <SectionTitle>Escaneie ou digite a chave da DANFE</SectionTitle>
+          )}
           <ManualInputGroup>
             <Input
               type="text"
               maxLength={44}
-              placeholder="Digite os 44 digitos da chave"
+              placeholder={isMobile ? "Digite os 44 digitos da chave" : "Aguardando leitura ou digite os 44 digitos..."}
               inputMode="numeric"
               value={inputChave}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
+              autoFocus={!isMobile}
             />
             <BtnPrimary onClick={handleBuscar}>Buscar</BtnPrimary>
           </ManualInputGroup>

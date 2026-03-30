@@ -271,6 +271,39 @@ export const ScanModalItemCode = styled.div`
   font-family: 'Courier New', monospace;
 `;
 
+export const DesktopScanLabel = styled.div`
+  text-align: center;
+  font-size: 14px;
+  color: ${colors.text.dark.little};
+  margin-bottom: 12px;
+`;
+
+export const DesktopScanInput = styled.input`
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+  text-align: center;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: ${colors.primary.main};
+    outline: none;
+    box-shadow: 0 0 0 3px ${colors.primary.light};
+  }
+
+  &::placeholder {
+    letter-spacing: 0;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 13px;
+    color: #aaa;
+  }
+`;
+
 export const BtnManualConfirm = styled.button`
   width: 100%;
   padding: 14px;
