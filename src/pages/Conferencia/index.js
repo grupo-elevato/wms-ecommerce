@@ -237,7 +237,7 @@ export default function Conferencia() {
   };
 
   const handleFinalizar = () => {
-    setShowSuccess(true);
+    navigate('/', { replace: true });
   };
 
   const handleNovaConferencia = () => {

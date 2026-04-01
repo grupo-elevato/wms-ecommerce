@@ -23,9 +23,12 @@ export default function DanfeScan() {
   const isMobile = useIsMobile();
   const [inputChave, setInputChave] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('Buscando pedido...');
   const [toast, setToast] = useState({ message: '', type: '' });
   const scanBufferRef = useRef([]);
   const lastScanTimeRef = useRef(0);
+  const processandoRef = useRef(false);
+  const inputRef = useRef(null);
 
   const showToast = useCallback((message, type) => {
     setToast({ message, type });
@@ -33,19 +36,36 @@ export default function DanfeScan() {
 
   const processarChave = useCallback(
     async (chave) => {
+      if (processandoRef.current) return;
+      processandoRef.current = true;
       setLoading(true);
+      setLoadingText('Buscando pedido...');
       try {
         const pedido = await buscarPedidoPorChave(chave);
         navigate('/conferencia', { state: { pedido, chave } });
+        return;
       } catch (err) {
-        showToast(err.message, 'error');
+        // Primeira tentativa falhou
+      }
+      // Tenta ordem invertida
+      const parte1 = chave.substring(0, 22);
+      const parte2 = chave.substring(22, 44);
+      const invertida = parte2 + parte1;
+      setLoadingText('Invertendo ordem e tentando novamente...');
+      try {
+        const pedido = await buscarPedidoPorChave(invertida);
+        navigate('/conferencia', { state: { pedido, chave: invertida } });
+      } catch (err2) {
+        showToast('Nenhum pedido encontrado para esta chave', 'error');
       } finally {
         setLoading(false);
+        processandoRef.current = false;
       }
     },
     [navigate, showToast]
   );
 
+  // Camera (mobile) - usa buffer para acumular duas leituras de 22 dígitos
   const handleDanfeScan = useCallback(
     (code) => {
       const cleanCode = code.replace(/\D/g, '');
@@ -55,15 +75,18 @@ export default function DanfeScan() {
         if (now - lastScanTimeRef.current > 3000) {
           scanBufferRef.current = [];
         }
-        scanBufferRef.current.push(cleanCode);
         lastScanTimeRef.current = now;
+
+        if (!scanBufferRef.current.includes(cleanCode)) {
+          scanBufferRef.current.push(cleanCode);
+        }
 
         if (scanBufferRef.current.length >= 2) {
           const chave = scanBufferRef.current[0] + scanBufferRef.current[1];
           scanBufferRef.current = [];
           processarChave(chave);
         } else {
-          showToast('Primeira linha lida. Posicione a segunda linha.', 'warning');
+          showToast('Uma linha lida. Posicione a outra linha.', 'warning');
         }
       } else if (cleanCode.length === 44) {
         processarChave(cleanCode);
@@ -74,9 +97,40 @@ export default function DanfeScan() {
     [processarChave, showToast]
   );
 
+  // Desktop (USB scanner) - acumula dígitos no input, ignora Enter até ter 44
   const handleInputChange = (e) => {
-    const value = e.target.value.replace(/\D/g, '');
+    const value = e.target.value.replace(/\D/g, '').substring(0, 44);
+    // Detecta linha duplicada (mesmos 22 dígitos repetidos)
+    if (value.length === 44) {
+      const primeira = value.substring(0, 22);
+      const segunda = value.substring(22, 44);
+      if (primeira === segunda) {
+        // Mesma linha lida 2x — descarta a duplicata, mantém só a primeira
+        setInputChave(primeira);
+        showToast('Mesma linha lida 2x. Leia a outra linha.', 'warning');
+        setTimeout(() => inputRef.current?.focus(), 0);
+        return;
+      }
+      setInputChave(value);
+      processarChave(value);
+      setTimeout(() => setInputChave(''), 0);
+      return;
+    }
     setInputChave(value);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      // Com 44 dígitos, busca (caso manual)
+      if (inputChave.length === 44) {
+        processarChave(inputChave);
+        setInputChave('');
+      }
+      // Menos de 44 — ignora Enter, mantém foco para acumular
+      setTimeout(() => inputRef.current?.focus(), 0);
+    }
   };
 
   const handleBuscar = () => {
@@ -85,10 +139,6 @@ export default function DanfeScan() {
       return;
     }
     processarChave(inputChave);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleBuscar();
   };
 
   return (
@@ -119,8 +169,8 @@ export default function DanfeScan() {
           )}
           <ManualInputGroup>
             <Input
+              ref={inputRef}
               type="text"
-              maxLength={44}
               placeholder={isMobile ? "Digite os 44 digitos da chave" : "Aguardando leitura ou digite os 44 digitos..."}
               inputMode="numeric"
               value={inputChave}
@@ -134,7 +184,7 @@ export default function DanfeScan() {
         </ScanSection>
       </Container>
 
-      <Loading visible={loading} text="Buscando pedido..." />
+      <Loading visible={loading} text={loadingText} />
       <Toast
         message={toast.message}
         type={toast.type}
