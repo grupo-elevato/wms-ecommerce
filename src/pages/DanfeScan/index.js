@@ -123,10 +123,11 @@ export default function DanfeScan() {
     if (e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
-      // Com 44 dígitos, busca (caso manual)
-      if (inputChave.length === 44) {
-        processarChave(inputChave);
+      // Lê valor direto do DOM (state pode estar defasado com scanner rápido)
+      const raw = (inputRef.current?.value || '').replace(/\D/g, '');
+      if (raw.length === 44 && !processandoRef.current) {
         setInputChave('');
+        processarChave(raw);
       }
       // Menos de 44 — ignora Enter, mantém foco para acumular
       setTimeout(() => inputRef.current?.focus(), 0);
